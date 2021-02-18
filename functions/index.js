@@ -12,3 +12,9 @@ exports.alarm = functions.https.onRequest(async (req, res) => {
   // Send back a message that we've successfully written the message
   res.json({ result: `Message with ID: ${original} added.` });
 });
+
+//projectId: smartfire-3e198
+//projectRegion:  us-central
+
+// https://firebase.google.com/docs/functions/write-firebase-functions
+//https://github.com/firebase/functions-samples 
