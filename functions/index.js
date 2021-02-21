@@ -1,5 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const twilio = require('twilio');
 admin.initializeApp();
 
 // Take the text parameter passed to this HTTP endpoint and insert it into
@@ -16,6 +17,7 @@ exports.alarm = functions.https.onRequest(async (req, res) => {
   const deviceData = device.data();
   const deviceSubscribersIds = deviceData.subscribersIds;
 
+
   // Get data for each subscriber id
   let deviceSubscribers = await Promise.all(
     deviceSubscribersIds.map(async (id) => {
@@ -24,8 +26,25 @@ exports.alarm = functions.https.onRequest(async (req, res) => {
     })
   );
 
+  
+
   // Remove every subscriber with no data
   deviceSubscribers = deviceSubscribers.filter((d) => d !== undefined);
+
+
+  //Setting up Twilio communications - Cameron
+  const sid = 'ACa8c77a101d335c8a9ce30b810a277476';
+  const token = '0f69ec61ec38f0548825d38a11bdd02b';
+
+  const twilioClient = new twilio(sid,token);
+
+  twilioClient.messages.create({
+    body: 'Test',
+    to: '+1'+deviceData.emergencyContact;  // Text this number
+    from: '+12345678901' // From a valid Twilio number
+})
+.then((message) => console.log(message.sid));
+
 
   // Send notification to each subscriber
   deviceSubscribers.forEach(async (user) => {
