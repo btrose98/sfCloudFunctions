@@ -64,3 +64,6 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+functions/serviceAccount.json
+functions/test_script.js
