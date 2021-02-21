@@ -40,8 +40,8 @@ exports.alarm = functions.https.onRequest(async (req, res) => {
 
   twilioClient.messages.create({
     body: 'Test',
-    to: '+1'+deviceData.emergencyContact;  // Text this number
-    from: '+12345678901' // From a valid Twilio number
+    to: '+1'+deviceData.emergencyContact,  // Text this number
+    from: '+14243519803' // From a valid Twilio number
 })
 .then((message) => console.log(message.sid));
 
