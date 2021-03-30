@@ -1,6 +1,5 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const twilio = require('twilio');
 admin.initializeApp();
 
 // Take the text parameter passed to this HTTP endpoint and insert it into
@@ -17,7 +16,6 @@ exports.alarm = functions.https.onRequest(async (req, res) => {
   const deviceData = device.data();
   const deviceSubscribersIds = deviceData.subscribersIds;
 
-
   // Get data for each subscriber id
   let deviceSubscribers = await Promise.all(
     deviceSubscribersIds.map(async (id) => {
@@ -26,25 +24,21 @@ exports.alarm = functions.https.onRequest(async (req, res) => {
     })
   );
 
-  
-
   // Remove every subscriber with no data
   deviceSubscribers = deviceSubscribers.filter((d) => d !== undefined);
 
-
   //Setting up Twilio communications - Cameron
-  const sid = 'ACa8c77a101d335c8a9ce30b810a277476';
-  const token = '0f69ec61ec38f0548825d38a11bdd02b';
+  const sid = functions.config().twilio.id;
+  const token = functions.config().twilio.token;
+  const twilioClient = require('twilio')(sid, token);
 
-  const twilioClient = new twilio(sid,token);
-
-  twilioClient.messages.create({
-    body: 'Test',
-    to: '+1'+deviceData.emergencyContact,  // Text this number
-    from: '+14243519803' // From a valid Twilio number
-})
-.then((message) => console.log(message.sid));
-
+  twilioClient.messages
+    .create({
+      body: `Fire alarm detected at ${deviceData.address}`,
+      to: '+1' + deviceData.emergencyContact, // Text this number
+      from: '+14243519803', // From a valid Twilio number
+    })
+    .then((message) => console.log(message.sid));
 
   // Send notification to each subscriber
   deviceSubscribers.forEach(async (user) => {
@@ -52,7 +46,7 @@ exports.alarm = functions.https.onRequest(async (req, res) => {
       .messaging()
       .send({
         topic: user.email.replace('@', '_'),
-        notification: { body: `Alarm went off at ${deviceData.address}`, title: `Hurry Up ${user.name}` },
+        notification: { body: `Your alarm went off at ${deviceData.address}`, title: `${user.name}, fire alarm is detected` },
       })
       .then((r) => {
         console.log(r);
@@ -70,4 +64,4 @@ exports.alarm = functions.https.onRequest(async (req, res) => {
 //projectRegion:  us-central
 
 // https://firebase.google.com/docs/functions/write-firebase-functions
-//https://github.com/firebase/functions-samples 
+//https://github.com/firebase/functions-samples
